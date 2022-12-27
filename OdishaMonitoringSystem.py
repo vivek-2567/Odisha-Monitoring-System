@@ -16,14 +16,20 @@ global wer
 wer=[]
 global ter
 ter = []
-
+mhum = 0
+mpress = 0
+max_temp = 0
+min_temp = 100
 
 def get_data(city_name):
     global df
     global mid_temp
     global ter
     global wer
-
+    global mhum
+    global mpress
+    global max_temp
+    global min_temp
     apik = "b568a8791832e5d958e862131d749ebf"
 
     baseurl = "https://api.openweathermap.org/data/2.5/weather?q="
@@ -39,14 +45,22 @@ def get_data(city_name):
 
     temp = round(data['main']['temp'] - 273.15,2)
     mid_temp += temp
+    if temp>max_temp:
+        max_temp = temp
+    if temp<min_temp:
+        min_temp = temp
     temp_min = round(data['main']['temp_min'] - 273.15,2)
     temp_max = round(data['main']['temp_max'] - 273.15,2)
     pres = data['main']['pressure']
+    if pres>mpress:
+        mpress = pres
     hum = data['main']['humidity']
+    if hum>mhum:
+        mhum = hum
     vis = data['visibility']/1000
     winspeed = data['wind']['speed'] * 3.6
 
-    if winspeed>5:
+    if winspeed>8:
         wer.append(city_name)
     if temp>30:
         ter.append(city_name)
@@ -63,8 +77,9 @@ def get_data(city_name):
         "WindSpeed":[str(round(winspeed,2)) + "km/hr"]
     })
     
-    df = df.append(df1)
+    df = pd.concat([df,df1])
     # print(df1)
+
 
 x = json.load(open("odisha_disticts.geojson","r"))
 y = pd.read_csv("data.csv")
@@ -74,7 +89,7 @@ y.drop("Headquarters",axis = 'columns',inplace=True)
 y.drop("id",axis = 'columns',inplace=True)
 
 for i in range(30):
-    print(y['District'][i])
+    # print(y['District'][i])
     get_data(y['District'][i])
 
 mid_temp /= 60
@@ -94,27 +109,60 @@ fig = px.choropleth(
     color_discrete_map=None,
     color_continuous_scale=px.colors.diverging.Geyser,
     range_color=(int(min(df['Temp'])),int(max(df['Temp']))),
-    color_continuous_midpoint=mid_temp
+    color_continuous_midpoint=mid_temp,
+    width = 800,
+    height = 700,
+    labels=df['District']
 )
 fig.update_geos(fitbounds="locations", visible=False)
+# px.scatter_geo(
+#     geojson=x,
+#     featureidkey="properties.NAME_2",
+#     locations=df["District"],
+#     text = df["District"]
+#     # mode='text'
+# )
 
-st.plotly_chart(fig,use_container_width=True)
+chart,metrix = st.columns([3,1])
 
+with chart:
+    st.plotly_chart(fig,use_container_width=True)
 
-col1,col2 = st.columns(2)
+with metrix:
+    st.markdown("")
+    st.markdown("")
+    st.metric(label = "Max Temperature",value = str(max_temp) +" "+chr(176)+"C")
+    st.markdown("")
+    st.markdown("")
+    st.markdown("")
+    st.markdown("")
+    st.metric(label = "Max Pressure",value = str(mpress) + " hPa")
+    st.markdown("")
+    st.markdown("")
+    st.markdown("")
+    st.markdown("")
+    st.metric(label = "Max Humidity",value = str(mhum) + " %")
+    st.markdown("")
+    st.markdown("")
+    st.markdown("")
+    st.markdown("")
+    st.metric(label = "Min Temperature",value = str(min_temp) +" "+chr(176)+"C")
 
-with col1:
+WindWarning,TempWarning = st.columns(2)
+
+with WindWarning:
     # st.write("Warnings about Wind Speed")
-    # for i in range(len(wer)):
-    #     new_title = '<p style="font-family:sans-serif; color:Red; font-size: 15px;">High Wind Speed at '+ wer[i] +' </p>'
-    #     st.markdown(new_title, unsafe_allow_html=True)
-    wdf = pd.DataFrame(wer,columns=["Wind Speed Warning"])
-    st.dataframe(wdf)
+    for i in range(len(wer)):
+        new_title = 'High Wind Speed at '+ wer[i]
+        st.error(new_title)
+    # wdf = pd.DataFrame(wer,columns=["Wind Speed Warning"])
+    # st.dataframe(wdf)
 
-with col2:
+
+with TempWarning:
     # st.write("Warnings about Temperature")
-    # for i in range(len(ter)):
-    #     new_title = '<p style="font-family:sans-serif; color:Red; font-size: 15px;">High Temperature at '+ ter[i] +' </p>'
-    #     st.markdown(new_title, unsafe_allow_html=True)
-    tdf = pd.DataFrame(ter,columns=["Temperature Warning"])
-    st.dataframe(tdf)
+    for i in range(len(ter)):
+        new_title = 'High Temperature at '+ ter[i]
+        st.error(new_title)
+    # tdf = pd.DataFrame(ter,columns=["Temperature Warning"])
+    # st.dataframe(tdf)
