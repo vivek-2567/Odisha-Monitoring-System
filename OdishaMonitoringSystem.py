@@ -60,9 +60,9 @@ def get_data(city_name):
     vis = data['visibility']/1000
     winspeed = data['wind']['speed'] * 3.6
 
-    if winspeed>8:
+    if winspeed>10:
         wer.append(city_name)
-    if temp>30:
+    if temp>35:
         ter.append(city_name)
 
     df1 = pd.DataFrame({
