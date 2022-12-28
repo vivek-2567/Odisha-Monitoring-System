@@ -6,7 +6,7 @@ import streamlit as st
 import requests
 
 st.set_page_config(page_title="Monitoring System", layout="wide")
-st.title("Odisha Monitoring System")
+st.markdown("<h1 style='text-align: center; color: White;'>Odisha Monitoring System</h1>", unsafe_allow_html=True)
 
 global df
 df = pd.DataFrame(columns=['District','Temp',"Temperature","Min_Temperature","Max_Temperature","Pressure","Humidity","Visiblity","WindSpeed"])
