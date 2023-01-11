@@ -30,7 +30,7 @@ def get_data(city_name):
     global mpress
     global max_temp
     global min_temp
-    apik = "b568a8791832e5d958e862131d749ebf"
+    apik = st.secrets['apik']
 
     baseurl = "https://api.openweathermap.org/data/2.5/weather?q="
     cityname = city_name
