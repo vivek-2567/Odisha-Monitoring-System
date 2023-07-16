@@ -165,12 +165,12 @@ with metrix:
 WindWarning,TempWarning = st.columns(2)
 
 with WindWarning:
-    st.write("Warnings about Wind Speed")
+    st.write("Warnings about Wind Speed>10")
     wdf = pd.DataFrame(wer,columns=["Wind Speed Warning"])
     st.table(wdf)
 
 
 with TempWarning:
-    st.write("Warnings about Temperature")
+    st.write("Warnings about Temperature>35")
     tdf = pd.DataFrame(ter,columns=["Temperature Warning"])
     st.dataframe(tdf)
