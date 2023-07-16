@@ -1,6 +1,7 @@
 import json
 import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go
 import plotly.io as pio
 import streamlit as st
 import requests
@@ -41,8 +42,6 @@ def get_data(city_name):
     result = requests.get(complete_url)
     data = result.json()
 
-    # print(data)
-
     temp = round(data['main']['temp'] - 273.15,2)
     mid_temp += temp
     if temp>max_temp:
@@ -78,7 +77,6 @@ def get_data(city_name):
     })
     
     df = pd.concat([df,df1])
-    # print(df1)
 
 
 x = json.load(open("odisha_disticts.geojson","r"))
@@ -89,7 +87,6 @@ y.drop("Headquarters",axis = 'columns',inplace=True)
 y.drop("id",axis = 'columns',inplace=True)
 
 for i in range(30):
-    # print(y['District'][i])
     get_data(y['District'][i])
 
 mid_temp /= 60
@@ -97,31 +94,48 @@ mid_temp /= 60
 df['Temp'] = df['Temp'].apply(lambda x: x+5)
 df['Temp'] = df['Temp'].apply(lambda x: x-5)
 
-fig = px.choropleth(
-    df, geojson=x,
-    featureidkey="properties.NAME_2",
-    locations="District",
-    color="Temp",
-    hover_name='District',
-    hover_data= ["Temperature","Min_Temperature","Max_Temperature","Pressure","Humidity","Visiblity","WindSpeed"],
-    # title = 'Odisha Monitoring System ',
-    color_discrete_sequence=None,
-    color_discrete_map=None,
-    color_continuous_scale=px.colors.diverging.Geyser,
-    range_color=(int(min(df['Temp'])),int(max(df['Temp']))),
-    color_continuous_midpoint=mid_temp,
-    width = 800,
-    height = 700,
-    labels=df['District']
+fig = go.Figure(data=go.Choropleth(
+    geojson=x,
+    featureidkey='properties.NAME_2',
+    locations=df['District'],
+    z=df['Temp'],
+    customdata= df[["District","Temperature","Min_Temperature","Max_Temperature","Pressure","Humidity","Visiblity","WindSpeed"]],
+    marker_line_color='black',
+    marker_opacity = 1,
+    marker_line_width = 1,
+    colorscale = 'Geyser',
+    hovertemplate =
+    "<b>%{customdata[0]}</b><br><br>"+
+    "Temperature: %{customdata[1]}<br>"+
+    "Min_Temperature: %{customdata[2]}<br>"+
+    "Max_Temperature: %{customdata[3]}<br>"+
+    "Pressure: %{customdata[4]}<br>"+
+    "Humidity: %{customdata[5]}<br>"+
+    "Visiblity: %{customdata[6]}<br>"+
+    "Wind Speed: %{customdata[7]}<br>"+
+    "<extra></extra>"
+))
+
+fig.update_geos(visible=False,fitbounds='locations')
+
+fig.add_trace(go.Scattergeo(
+    lon=y['lon_c'],
+    lat=y['lat_c'],
+    mode='text',
+    textposition='top center',
+    text=[str(x) for x in df["District"]],
+    textfont={'color': 'Black'},
+    hoverinfo='skip',
+))
+fig.update_layout(
+    font = dict(
+        size = 12
+    ),
+    margin={'r': 0, 't': 0, 'l': 0, 'b': 0},
+    height=680,
+    width=800
 )
-fig.update_geos(fitbounds="locations", visible=False)
-# px.scatter_geo(
-#     geojson=x,
-#     featureidkey="properties.NAME_2",
-#     locations=df["District"],
-#     text = df["District"]
-#     # mode='text'
-# )
+
 
 chart,metrix = st.columns([3,1])
 
@@ -151,18 +165,12 @@ with metrix:
 WindWarning,TempWarning = st.columns(2)
 
 with WindWarning:
-    # st.write("Warnings about Wind Speed")
-    for i in range(len(wer)):
-        new_title = 'High Wind Speed at '+ wer[i]
-        st.error(new_title)
-    # wdf = pd.DataFrame(wer,columns=["Wind Speed Warning"])
-    # st.dataframe(wdf)
+    st.write("Warnings about Wind Speed")
+    wdf = pd.DataFrame(wer,columns=["Wind Speed Warning"])
+    st.table(wdf)
 
 
 with TempWarning:
-    # st.write("Warnings about Temperature")
-    for i in range(len(ter)):
-        new_title = 'High Temperature at '+ ter[i]
-        st.error(new_title)
-    # tdf = pd.DataFrame(ter,columns=["Temperature Warning"])
-    # st.dataframe(tdf)
+    st.write("Warnings about Temperature")
+    tdf = pd.DataFrame(ter,columns=["Temperature Warning"])
+    st.dataframe(tdf)
