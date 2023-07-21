@@ -59,7 +59,7 @@ def get_data(city_name):
     vis = data['visibility']/1000
     winspeed = data['wind']['speed'] * 3.6
 
-    if winspeed>10:
+    if winspeed>20:
         wer.append(city_name)
     if temp>35:
         ter.append(city_name)
@@ -165,12 +165,12 @@ with metrix:
 WindWarning,TempWarning = st.columns(2)
 
 with WindWarning:
-    st.write("Warnings about Wind Speed>10")
+    st.write("Warnings about Wind Speed > 20kmph")
     wdf = pd.DataFrame(wer,columns=["Wind Speed Warning"])
     st.table(wdf)
 
 
 with TempWarning:
-    st.write("Warnings about Temperature>35")
+    st.write("Warnings about Temperature > 35C")
     tdf = pd.DataFrame(ter,columns=["Temperature Warning"])
     st.dataframe(tdf)
