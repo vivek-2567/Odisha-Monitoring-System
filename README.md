@@ -33,7 +33,7 @@ https://www.python.org/downloads/
 <p>2. Clone this project</p>
 
 ```
-git clone https://github.com/vivek-2567/Alzheimer_Disease_Detection.git
+git clone https://github.com/vivek-2567/Odisha-Monitoring-System.git
 ```
 
 <p>3. Change the current working directory</p>
